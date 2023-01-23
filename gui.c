@@ -909,98 +909,14 @@ ULONG GuiWait( __in PGUI_WAIT_PARAM pParam )
 }
 
 
-INT_PTR CALLBACK GuiAbortDialogProc( _In_ HWND hDlg, _In_ UINT uMsg, _In_ WPARAM wParam, _In_ LPARAM lParam )
-{
-	switch (uMsg)
-	{
-	case WM_INITDIALOG:
-	{
-		TCHAR szText[128];
-		HMODULE hUser32 = GetModuleHandle( _T( "user32" ) );
-
-		/// Icon
-		HICON hIco = LoadImage( hUser32, MAKEINTRESOURCE( 102 ), IMAGE_ICON, 32, 32, 0 );
-		assert( hIco );
-		if (hIco) {
-			SendDlgItemMessage( hDlg, IDC_POPUP_ICON, STM_SETICON, (WPARAM)hIco, 0 );
-			SetProp( hDlg, _T( "MyIcon" ), hIco );
-		}
-
-		/// Text
-		if (g_Gui.pszAbortTitle)
-			SetWindowText( hDlg, g_Gui.pszAbortTitle );
-		if (g_Gui.pszAbortMsg)
-			SetDlgItemText( hDlg, IDC_STATIC_TEXT, g_Gui.pszAbortMsg );
-
-		if (LoadString( hUser32, 805, szText, ARRAYSIZE( szText ) ) > 0)
-			SetDlgItemText( hDlg, IDYES, szText );
-		if (LoadString( hUser32, 806, szText, ARRAYSIZE( szText ) ) > 0)
-			SetDlgItemText( hDlg, IDNO, szText );
-		break;
-	}
-
-	case WM_DESTROY:
-	{
-		HICON hIco = (HICON)GetProp( hDlg, _T( "MyIcon" ) );
-		if (hIco) {
-			RemoveProp( hDlg, _T( "MyIcon" ) );
-			DestroyIcon( hIco );
-		}
-		if (TRUE) {
-			HWND hCallbackWnd = (HWND)GetProp( hDlg, _T( "CallbackWnd" ) );
-			UINT iCallbackMsg = HandleToULong( GetProp( hDlg, _T( "CallbackMsg" ) ) );
-			BOOL bAnswerYes = (BOOL)HandleToUlong( GetProp( hDlg, _T( "AnswerYes" ) ) );
-			RemoveProp( hDlg, _T( "CallbackWnd" ) );
-			RemoveProp( hDlg, _T( "CallbackMsg" ) );
-			RemoveProp( hDlg, _T( "AnswerYes" ) );
-			if (hCallbackWnd)
-				PostMessage( hCallbackWnd, iCallbackMsg, (WPARAM)bAnswerYes, 0 );
-		}
-		g_Gui.hAbortWnd = NULL;
-		break;
-	}
-
-	case WM_COMMAND:
-	{
-		switch (LOWORD( wParam ))
-		{
-		case IDYES:
-			SetProp( hDlg, _T( "AnswerYes" ), (HANDLE)TRUE );
-			DestroyWindow( hDlg );
-			break;
-
-		case IDNO:
-		case IDCANCEL:
-			DestroyWindow( hDlg );
-			break;
-		}
-		break;
-	}
-
-	case WM_SYSCOMMAND:
-	{
-		if (wParam == SC_CLOSE)
-			DestroyWindow( hDlg );
-		break;
-	}
-	}
-
-	return FALSE;		/// Default dialog procedure
-}
-
-
 void GuiAbortShow( __in HWND hParent, __in HWND hCallbackWnd, __in UINT iCallbackMsg )
 {
 	if (g_Gui.bAbort) {		/// Abortion permitted?
 		if (!g_Gui.bAborted) {	/// Already aborted?
 			if (g_Gui.pszAbortMsg && *g_Gui.pszAbortMsg) {	/// Abortion message available?
-				if (!g_Gui.hAbortWnd) {		/// Confirmation dialog already visible?
-					g_Gui.hAbortWnd = CreateDialogParam( g_hInst, MAKEINTRESOURCE( IDD_CONFIRMATION ), hParent, GuiAbortDialogProc, 0 );
-					if (g_Gui.hAbortWnd) {
-						SetProp( g_Gui.hAbortWnd, _T( "CallbackWnd" ), (HANDLE)hCallbackWnd );
-						SetProp( g_Gui.hAbortWnd, _T( "CallbackMsg" ), ULongToHandle( iCallbackMsg ) );
-						ShowWindow( g_Gui.hAbortWnd, SW_SHOW );
-					}
+				if (MessageBox(hParent, g_Gui.pszAbortMsg, g_Gui.pszAbortTitle, MB_YESNO | MB_ICONEXCLAMATION) == IDYES) {
+					if (hCallbackWnd)
+						PostMessage(hCallbackWnd, iCallbackMsg, (WPARAM)TRUE, 0);
 				}
 			} else {
 				/// No message is available. Abort without warning

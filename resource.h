@@ -3,8 +3,6 @@
 // Used by resource.rc
 //
 #define IDD_POPUP                       101
-#define IDD_CONFIRMATION                102
-#define IDC_STATIC_TEXT                 1001
 #define IDC_POPUP_PROGRESS              1002
 #define IDC_POPUP_ICON                  1003
 #define IDC_POPUP_STATUS                1004

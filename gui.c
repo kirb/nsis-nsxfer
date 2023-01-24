@@ -677,8 +677,8 @@ ULONG GuiWaitPage()
 	/// Original InstFiles page controls
 	HWND hInstFilesPage = NULL, hStatus = NULL, hProgress = NULL, hDetailsBtn = NULL, hDetailsList = NULL;
 	RECT rcStatus, rcProgress, rcDetailsBtn, rcDetailsList;
-	LONG iStatusStyle, iStatusStyleEx;
-	LONG iProgressStyle, iProgressStyleEx;
+	LONG iStatusStyle, iStatusStyleEx, iStatusUserData;
+	LONG iProgressStyle, iProgressStyleEx, iProgressUserData;
 	HWND hAbortBtn = NULL;
 
 	/// New controls
@@ -703,6 +703,7 @@ ULONG GuiWaitPage()
 				ScreenToClient( hInstFilesPage, (LPPOINT)&rcStatus.right );
 				iStatusStyle = (LONG)GetWindowLongPtr( hStatus, GWL_STYLE );
 				iStatusStyleEx = (LONG)GetWindowLongPtr( hStatus, GWL_EXSTYLE );
+				iStatusUserData = (LONG)GetWindowLongPtr( hStatus, GWLP_USERDATA );
 
 				/// InstFiles page progress bar
 				GetWindowRect( hProgress, &rcProgress );
@@ -710,6 +711,7 @@ ULONG GuiWaitPage()
 				ScreenToClient( hInstFilesPage, (LPPOINT)&rcProgress.right );
 				iProgressStyle = (LONG)GetWindowLongPtr( hProgress, GWL_STYLE );
 				iProgressStyleEx = (LONG)GetWindowLongPtr( hProgress, GWL_EXSTYLE );
+				iProgressUserData = (LONG)GetWindowLongPtr( hProgress, GWLP_USERDATA );
 
 				/// InstFiles page details button
 				hDetailsBtn = GetDlgItem( hInstFilesPage, 1027 );
@@ -732,11 +734,13 @@ ULONG GuiWaitPage()
 				OffsetRect( &rcNewStatus, 0, (rcProgress.bottom - rcStatus.top) + (rcDetailsList.top - rcProgress.bottom) );
 				hNewStatus = CreateWindowEx( iStatusStyleEx, _T( "STATIC" ), _T( "" ), iStatusStyle, LTWH( rcNewStatus ), hInstFilesPage, NULL, NULL, NULL );
 				SendMessage( hNewStatus, WM_SETFONT, (WPARAM)SendMessage( hStatus, WM_GETFONT, 0, 0 ), MAKELPARAM( FALSE, 0 ) );
+				SetWindowLongPtr( hNewStatus, GWLP_USERDATA, iStatusUserData );
 
 				/// New progress bar
 				CopyRect( &rcNewProgress, &rcProgress );
 				OffsetRect( &rcNewProgress, 0, rcNewStatus.bottom + (rcStatus.bottom - rcProgress.top) - rcNewProgress.top );
 				hNewProgress = CreateWindowEx( iProgressStyleEx, PROGRESS_CLASS, _T( "" ), iProgressStyle, LTWH( rcNewProgress ), hInstFilesPage, NULL, NULL, NULL );
+				SetWindowLongPtr( hNewProgress, GWLP_USERDATA, iProgressUserData );
 
 				iDetailsOffsetY = rcNewProgress.bottom + (rcDetailsList.top - rcProgress.bottom) - rcDetailsList.top;
 				iDetailsOffsetY += iDetailsOffsetY / 8;

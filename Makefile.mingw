@@ -33,10 +33,12 @@ STATIC   = $(OUTDIR)/lib$(PROJECT).a
 
 # ARCH
 ifeq ($(ARCH), X64)
+	PREFIX  := $(PREFIX64)
 	CFLAGS  += -DNDEBUG
 	LDFLAGS += -Wl,--high-entropy-va -Wl,-e'DllMain'
 	RCFLAGS += -F pe-x86-64
 else
+	PREFIX  := $(PREFIX32)
 	CFLAGS  += -march=pentium2 -DNDEBUG
 	LDFLAGS += -Wl,-e'_DllMain'
 	RCFLAGS += -F pe-i386
@@ -87,26 +89,24 @@ RCFLAGS += \
 .PHONY: clean all-before all all-after
 
 clean:
-	@echo.
-	if exist $(OUTDIR) rd /S /Q $(OUTDIR)
+	rm -rf $(OUTDIR)
 
 all: all-before $(_BIN) all-after
 
 all-before:
-	if not exist $(OUTDIR) mkdir $(OUTDIR)
+	mkdir -p $(OUTDIR)
 
 # Link
 $(_BIN): $(_OBJ)
-	@echo.
-	gcc $(_OBJ) -o $(_BIN) $(LDFLAGS)
+	$(PREFIX)gcc $(_OBJ) -o $(_BIN) $(LDFLAGS)
 
 # Compile .c
 $(OUTDIR)/%.o: %.c
-	gcc $(CFLAGS) -o $@ -c $<
+	$(PREFIX)gcc $(CFLAGS) -o $@ -c $<
 
 $(OUTDIR)/%.o: nsis/pluginapi.c
-	gcc $(CFLAGS) -o $@ -c $<
+	$(PREFIX)gcc $(CFLAGS) -o $@ -c $<
 
 # Compile .rc
 $(OUTDIR)/%.res: %.rc
-	windres -o $@ -i $< -O coff --input-format=rc $(RCFLAGS)
+	$(PREFIX)windres -o $@ -i $< -O coff --input-format=rc $(RCFLAGS)

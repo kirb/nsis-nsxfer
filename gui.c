@@ -11,7 +11,7 @@
 #define GUI_TIMER_REFRESH_ID	1
 #define GUI_TIMER_REFRESH_TIME	500
 #define GUI_OUTPUT_STRING_LEN	1024
-#define TEXT_NA					_T( "n/a" )
+#define TEXT_NA					_T( "-" )
 #define WM_ABORT_CLOSED			WM_USER + 0x266
 
 #define DEFAULT_TITLE_SINGLE	_T("{PERCENT}% - Downloading...")

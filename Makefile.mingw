@@ -39,7 +39,7 @@ ifeq ($(ARCH), X64)
 	RCFLAGS += -F pe-x86-64
 else
 	PREFIX  := $(PREFIX32)
-	CFLAGS  += -march=pentium2 -DNDEBUG
+	CFLAGS  += -march=i486 -DNDEBUG
 	LDFLAGS += -Wl,-e'_DllMain'
 	RCFLAGS += -F pe-i386
 endif
